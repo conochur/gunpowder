@@ -1,9 +1,8 @@
 import logging
 import random
 
-from gunpowder.profiling import Timing
-
 from .batch_filter import BatchFilter
+from gunpowder.profiling import Timing
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +107,7 @@ class Reject(BatchFilter):
 
                 if timing.elapsed() > report_next_timeout:
                     logger.warning(
-                        "rejected %d batches, been waiting for a good one since %ds",
+                        "rejected %d batches, been waiting for a good one " "since %ds",
                         num_rejected,
                         report_next_timeout,
                     )

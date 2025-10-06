@@ -1,9 +1,8 @@
 import logging
 import os
-
 import numpy as np
 
-from gunpowder.array import Array, ArrayKey
+from gunpowder.array import ArrayKey, Array
 from gunpowder.ext import tensorflow as tf
 from gunpowder.nodes.generic_train import GenericTrain
 from gunpowder.tensorflow.local_server import LocalServer
@@ -279,7 +278,7 @@ class Train(GenericTrain):
                 # variables of the original meta-graph and 'gunpowder'
                 # variables. Custom optimizer variables will be default
                 # initialized.
-                logger.info("Checkpoint did not contain custom optimizer variables")
+                logger.info("Checkpoint did not contain custom optimizer " "variables")
                 self.__restore_graph(checkpoint, restore_full=False)
         else:
             logger.info("No checkpoint found")
@@ -326,7 +325,7 @@ class Train(GenericTrain):
                     inputs[input_name] = batch.arrays[input_key].data
                 else:
                     logger.warn(
-                        "batch does not contain %s, input %s will not be set",
+                        "batch does not contain %s, input %s will not " "be set",
                         input_key,
                         input_name,
                     )
@@ -336,9 +335,8 @@ class Train(GenericTrain):
                 inputs[input_name] = getattr(batch, input_key)
             else:
                 raise Exception(
-                    "Unknown network input key {}, can't be given to network".format(
-                        input_key
-                    )
+                    "Unknown network input key {}, can't be given to "
+                    "network".format(input_key)
                 )
 
         return inputs

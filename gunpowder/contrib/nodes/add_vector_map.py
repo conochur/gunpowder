@@ -1,6 +1,5 @@
 import copy
 import logging
-
 import numpy as np
 from scipy.spatial import KDTree
 
@@ -8,9 +7,9 @@ from gunpowder.array import Array
 from gunpowder.array_spec import ArraySpec
 from gunpowder.batch_request import BatchRequest
 from gunpowder.coordinate import Coordinate
-from gunpowder.graph_spec import GraphSpec
 from gunpowder.morphology import enlarge_binary_map
 from gunpowder.nodes.batch_filter import BatchFilter
+from gunpowder.graph_spec import GraphSpec
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +189,7 @@ class AddVectorMap(BatchFilter):
                                     (
                                         offset_vx_considered_mask[dim]
                                         + (2 * self.radius_phys // voxel_size_vm[dim]),
-                                        (mask.shape[dim]),
+                                        ((mask.shape[dim])),
                                     )
                                 )
                             ),

@@ -1,12 +1,11 @@
 import logging
+import numpy as np
 import os
 
-import numpy as np
-
-from gunpowder.batch_request import BatchRequest
-from gunpowder.ext import ZarrFile, h5py
-
 from .batch_filter import BatchFilter
+from gunpowder.batch_request import BatchRequest
+from gunpowder.ext import h5py
+from gunpowder.ext import ZarrFile
 
 logger = logging.getLogger(__name__)
 
@@ -208,7 +207,7 @@ class Snapshot(BatchFilter):
                     if not array.spec.nonspatial:
                         if array.spec.roi is not None:
                             dataset.attrs["offset"] = array.spec.roi.offset
-                        dataset.attrs["voxel_size"] = self.spec[array_key].voxel_size
+                        dataset.attrs["resolution"] = self.spec[array_key].voxel_size
 
                     if self.store_value_range:
                         dataset.attrs["value_range"] = (

@@ -1,5 +1,4 @@
 import logging
-
 import networkx as nx
 import numpy as np
 
@@ -85,7 +84,7 @@ class GraphSource(BatchProvider):
         dangling_nodes = []
         for node, data in daisy_graph.nodes(data=True):
             position_attribute = graph_provider.position_attribute
-            if isinstance(position_attribute, list):
+            if type(position_attribute) == list:
                 if position_attribute[0] not in data:
                     dangling_nodes.append(node)
                     continue

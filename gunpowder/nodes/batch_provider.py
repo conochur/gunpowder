@@ -1,17 +1,17 @@
+import numpy as np
+
 import copy
 import logging
 import random
 import traceback
 from typing import Optional
 
-import numpy as np
-
+from gunpowder.coordinate import Coordinate
+from gunpowder.provider_spec import ProviderSpec
 from gunpowder.array import ArrayKey
 from gunpowder.array_spec import ArraySpec
-from gunpowder.coordinate import Coordinate
 from gunpowder.graph import GraphKey
 from gunpowder.graph_spec import GraphSpec
-from gunpowder.provider_spec import ProviderSpec
 
 logger = logging.getLogger(__name__)
 
@@ -178,14 +178,15 @@ class BatchProvider(object):
                 :class:`GraphSpecs<GraphSpec>`.
         """
 
-        batch = None
-
+        batch = None     
+        
+        
+        #edit: removed checks for added margin
         try:
             self.set_seeds(request)
 
             logger.debug("%s got request %s", self.name(), request)
 
-            self.check_request_consistency(request)
 
             upstream_request = request.copy()
             if self.remove_placeholders:
@@ -193,10 +194,12 @@ class BatchProvider(object):
             batch = self.provide(upstream_request)
 
             request.remove_placeholders()
-
-            self.check_batch_consistency(batch, request)
-
+            
+            self.check_request_consistency(request)
             self.remove_unneeded(batch, request)
+            
+            if batch.get_total_roi() != request.get_total_roi():
+                self.check_batch_consistency(batch, request)
 
             logger.debug("%s provides %s", self.name(), batch)
 
@@ -207,6 +210,7 @@ class BatchProvider(object):
             raise BatchRequestError(
                 self, request, batch, original_traceback=tb
             ) from None
+            
 
         return batch
 
@@ -225,7 +229,7 @@ class BatchProvider(object):
                 isinstance(request_spec, ArraySpec)
                 or isinstance(request_spec, GraphSpec)
                 or isinstance(request_spec, GraphSpec)
-            ), "spec for %s is of type%s" % (key, type(request_spec))
+            ), "spec for %s is of type" "%s" % (key, type(request_spec))
 
             provided_spec = self.spec[key]
 
@@ -387,7 +391,8 @@ class BatchProvider(object):
 
         if not isinstance(other, Pipeline):
             raise RuntimeError(
-                f"Don't know how to add {type(other)} to BatchProvider {self.name()}"
+                f"Don't know how to add {type(other)} to BatchProvider "
+                f"{self.name()}"
             )
 
         return Pipeline(self) + other
@@ -403,5 +408,5 @@ class BatchProvider(object):
             return other + Pipeline(self)
 
         raise RuntimeError(
-            f"Don't know how to radd {type(other)} to BatchProvider{self.name()}"
+            f"Don't know how to radd {type(other)} to BatchProvider" f"{self.name()}"
         )

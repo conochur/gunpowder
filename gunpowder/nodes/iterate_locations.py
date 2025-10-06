@@ -2,12 +2,11 @@ import logging
 import multiprocessing as mp
 from random import randrange
 
-from gunpowder.array import Array
-from gunpowder.array_spec import ArraySpec
+from .batch_filter import BatchFilter
 from gunpowder.batch_request import BatchRequest
 from gunpowder.coordinate import Coordinate
-
-from .batch_filter import BatchFilter
+from gunpowder.array import Array
+from gunpowder.array_spec import ArraySpec
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +175,7 @@ class IterateLocations(BatchFilter):
             shifted_roi = request_roi.shift(self.shift)
             if not provided_roi.contains(shifted_roi):
                 logger.warning(
-                    ("Provided roi %s for key %s does notcontain shifted roi %s"),
+                    ("Provided roi %s for key %s does notcontain" " shifted roi %s"),
                     provided_roi,
                     key,
                     shifted_roi,

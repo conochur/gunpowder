@@ -1,6 +1,5 @@
-import logging
 from random import randrange
-
+import logging
 import numpy as np
 
 from gunpowder.coordinate import Coordinate
@@ -108,7 +107,7 @@ class SpecifiedLocation(BatchFilter):
             ):
                 if self.choose_randomly:
                     raise Exception(
-                        f"Took {5 * len(self.coordinates)} samples of {len(self.coordinates)} points "
+                        f"Took {5*len(self.coordinates)} samples of {len(self.coordinates)} points "
                         "and did not find a suitible location"
                     )
                 else:

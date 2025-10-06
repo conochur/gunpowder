@@ -1,17 +1,20 @@
-import copy
-import logging
 import math
-
+from gunpowder.coordinate import Coordinate
 from gunpowder.array import ArrayKey
 from gunpowder.array_spec import ArraySpec
-from gunpowder.coordinate import Coordinate
 from gunpowder.graph import GraphKey
 from gunpowder.graph_spec import GraphSpec
 from gunpowder.roi import Roi
-
 from .freezable import Freezable
+import logging
+import copy
 
 logger = logging.getLogger(__name__)
+
+
+import logging
+
+logger = logging.getLogger(__file__)
 
 
 class ProviderSpec(Freezable):
@@ -83,9 +86,9 @@ class ProviderSpec(Freezable):
             if isinstance(spec, Roi):
                 spec = ArraySpec(roi=spec)
 
-            assert isinstance(
-                spec, ArraySpec
-            ), f"Only ArraySpec (not {type(spec).__name__}) can be set for ArrayKey"
+            assert isinstance(spec, ArraySpec), (
+                f"Only ArraySpec (not {type(spec).__name__}) can be set for " "ArrayKey"
+            )
 
             self.array_specs[key] = spec.copy()
 
@@ -93,9 +96,9 @@ class ProviderSpec(Freezable):
             if isinstance(spec, Roi):
                 spec = GraphSpec(roi=spec)
 
-            assert isinstance(
-                spec, GraphSpec
-            ), f"Only GraphSpec (not {type(spec).__name__}) can be set for GraphKey"
+            assert isinstance(spec, GraphSpec), (
+                f"Only GraphSpec (not {type(spec).__name__}) can be set for " "GraphKey"
+            )
 
             self.graph_specs[key] = spec.copy()
 

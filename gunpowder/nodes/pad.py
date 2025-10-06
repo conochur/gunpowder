@@ -1,13 +1,12 @@
 import logging
-
 import numpy as np
 
-from gunpowder.array import ArrayKey
-from gunpowder.batch_request import BatchRequest
-from gunpowder.coordinate import Coordinate
-from gunpowder.roi import Roi
-
 from .batch_filter import BatchFilter
+from gunpowder.array import ArrayKey
+from gunpowder.roi import Roi
+from gunpowder.coordinate import Coordinate
+from gunpowder.batch_request import BatchRequest
+
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +86,7 @@ class Pad(BatchFilter):
 
         if request[self.key].roi.empty:
             logger.warning(
-                "Requested %s ROI %s lies entirely outside of upstream ROI %s.",
+                "Requested %s ROI %s lies entirely outside of upstream " "ROI %s.",
                 self.key,
                 roi,
                 upstream_spec[self.key].roi,

@@ -1,17 +1,16 @@
 import logging
 import math
-import random
-import warnings
-
 import numpy as np
+import random
 from scipy import ndimage
 
+from .batch_filter import BatchFilter
 from gunpowder.batch_request import BatchRequest
 from gunpowder.coordinate import Coordinate
 from gunpowder.ext import augment
 from gunpowder.roi import Roi
 
-from .batch_filter import BatchFilter
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +195,8 @@ class ElasticAugment(BatchFilter):
             # not be the case for points)
             target_roi = target_roi.snap_to_grid(self.voxel_size, mode="grow")
             logger.debug(
-                "downstream request spatial ROI aligned with voxel grid for %s is %s",
+                "downstream request spatial ROI aligned with voxel grid for %s "
+                "is %s",
                 key,
                 target_roi,
             )

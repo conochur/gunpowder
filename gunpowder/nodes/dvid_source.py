@@ -1,15 +1,13 @@
 import logging
-
 import numpy as np
 
-from gunpowder.array import Array
-from gunpowder.array_spec import ArraySpec
 from gunpowder.batch import Batch
 from gunpowder.coordinate import Coordinate
 from gunpowder.ext import dvision
 from gunpowder.profiling import Timing
 from gunpowder.roi import Roi
-
+from gunpowder.array import Array
+from gunpowder.array_spec import ArraySpec
 from .batch_provider import BatchProvider
 
 logger = logging.getLogger(__name__)
@@ -130,7 +128,9 @@ class DvidSource(BatchProvider):
             )
 
         else:
-            assert False, "Encountered a request that is neither a volume nor a mask."
+            assert False, (
+                "Encountered a request that is neither a volume " "nor a mask."
+            )
 
         return data.info
 

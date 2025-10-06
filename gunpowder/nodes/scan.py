@@ -1,17 +1,14 @@
 import logging
 import multiprocessing
-from abc import ABC
-
 import numpy as np
 import tqdm
-
+from abc import ABC
 from gunpowder.array import Array
 from gunpowder.batch import Batch
 from gunpowder.coordinate import Coordinate
 from gunpowder.graph import Graph
 from gunpowder.producer_pool import ProducerPool
 from gunpowder.roi import Roi
-
 from .batch_filter import BatchFilter
 
 logger = logging.getLogger(__name__)
@@ -268,6 +265,7 @@ class Scan(BatchFilter):
             # 2. the length is length of spec - length of reference + 1
 
             # 1. get the starting point of the shift ROI
+            
             shift_begin = spec[key].roi.begin - reference_spec.roi.begin
 
             # 2. get the shape of the shift ROI

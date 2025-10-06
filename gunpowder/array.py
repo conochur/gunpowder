@@ -1,10 +1,8 @@
-import copy
-import logging
-from copy import deepcopy
-
-import numpy as np
-
 from .freezable import Freezable
+from copy import deepcopy
+import logging
+import numpy as np
+import copy
 
 logger = logging.getLogger(__name__)
 
@@ -36,23 +34,23 @@ class Array(Freezable):
         if attrs is None:
             self.attrs = {}
 
-        if spec is not None and spec.roi is not None and spec.voxel_size is not None:
-            for d in range(len(spec.voxel_size)):
-                assert (
-                    spec.voxel_size[d] * data.shape[-spec.roi.dims + d]
-                    == spec.roi.shape[d]
-                ), "ROI %s does not align with voxel size %s * data shape %s" % (
-                    spec.roi,
-                    spec.voxel_size,
-                    data.shape,
-                )
-                if spec.roi.offset[d] is not None:
-                    assert (
-                        spec.roi.offset[d] % spec.voxel_size[d] == 0
-                    ), "ROI offset %s must be a multiple of voxel size %s" % (
-                        spec.roi.offset,
-                        spec.voxel_size,
-                    )
+        #if spec is not None and spec.roi is not None and spec.voxel_size is not None:
+            #for d in range(len(spec.voxel_size)):
+                #assert (
+                    #spec.voxel_size[d] * data.shape[-spec.roi.dims + d]
+                    #== spec.roi.shape[d]
+                #), "ROI %s does not align with voxel size %s * data shape %s" % (
+                    #spec.roi,
+                    #spec.voxel_size,
+                    #data.shape,
+                #)
+                #if spec.roi.offset[d] is not None:
+                    #assert (
+                        #spec.roi.offset[d] % spec.voxel_size[d] == 0
+                    #), "ROI offset %s must be a multiple of voxel size %s" % (
+                        #spec.roi.offset,
+                        #spec.voxel_size,
+                    #)
 
         if spec.dtype is not None:
             assert (

@@ -1,8 +1,8 @@
-import logging
-import traceback
-
 from gunpowder.nodes import BatchProvider
 from gunpowder.nodes.batch_provider import BatchRequestError
+
+import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class Pipeline:
             self.initialized = True
         else:
             logger.warning(
-                "pipeline.setup() called more than once (build() inside build()?)"
+                "pipeline.setup() called more than once (build() inside " "build()?)"
             )
 
     def internal_teardown(self):

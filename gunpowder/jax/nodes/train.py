@@ -1,15 +1,18 @@
 import logging
-import os
-import pickle
-from typing import Any, Dict, Optional, Union
-
 import numpy as np
+from gunpowder.ext import jax
+from gunpowder.ext import jnp
+import pickle
+import os
 
-from gunpowder.array import Array, ArrayKey
+from gunpowder.array import ArrayKey, Array
 from gunpowder.array_spec import ArraySpec
-from gunpowder.ext import NoSuchModule, jax, jnp, tensorboardX
-from gunpowder.jax import GenericJaxModel
+from gunpowder.ext import tensorboardX, NoSuchModule
 from gunpowder.nodes.generic_train import GenericTrain
+from gunpowder.jax import GenericJaxModel
+
+from typing import Dict, Union, Optional, Any
+
 
 logger = logging.getLogger(__name__)
 
@@ -304,9 +307,8 @@ class Train(GenericTrain):
                 arrays[array_name] = array_key
             else:
                 raise Exception(
-                    "Unknown network array key {}, can't be given to network".format(
-                        array_key
-                    )
+                    "Unknown network array key {}, can't be given to "
+                    "network".format(array_key)
                 )
 
         return arrays

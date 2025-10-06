@@ -1,12 +1,13 @@
 import logging
-from typing import Any, Dict, Optional, Union
-
 import numpy as np
 
-from gunpowder.array import Array, ArrayKey
+from gunpowder.array import ArrayKey, Array
 from gunpowder.array_spec import ArraySpec
-from gunpowder.ext import NoSuchModule, tensorboardX, torch
+from gunpowder.ext import torch, tensorboardX, NoSuchModule
 from gunpowder.nodes.generic_train import GenericTrain
+
+from typing import Dict, Union, Optional, Any
+import itertools
 
 logger = logging.getLogger(__name__)
 
@@ -258,13 +259,13 @@ class Train(GenericTrain):
         # Update device loss inputs with tensors from outputs if available
         flipped_outputs = {v: outputs[k] for k, v in self.outputs.items()}
         device_loss_inputs = {
-            k[5:]: flipped_outputs.get(v, device_loss_inputs.get(k))
+            k: flipped_outputs.get(v, device_loss_inputs.get(k))
             for k, v in self.loss_inputs.items()
         }
 
         device_loss_args = []
         for i in range(len(device_loss_inputs)):
-            key = f"{i}"
+            key = f"loss_{i}"
             if key in device_loss_inputs:
                 device_loss_args.append(device_loss_inputs.pop(key))
             else:
@@ -376,9 +377,8 @@ class Train(GenericTrain):
                 arrays[array_name] = getattr(batch, array_key)
             else:
                 raise Exception(
-                    "Unknown network array key {}, can't be given to network".format(
-                        array_key
-                    )
+                    "Unknown network array key {}, can't be given to "
+                    "network".format(array_key)
                 )
 
         return arrays

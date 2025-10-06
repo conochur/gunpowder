@@ -1,27 +1,27 @@
-import logging
-import math
-import random
-from typing import Optional, Sequence
+from .batch_filter import BatchFilter
+from gunpowder.batch import Batch
+from gunpowder.batch_request import BatchRequest
+from gunpowder.coordinate import Coordinate
+from gunpowder.roi import Roi
+from gunpowder.array import ArrayKey, Array
+from gunpowder.array_spec import ArraySpec
 
-import numpy as np
-from augment.augment import apply_transformation, upscale_transformation
 from augment.transform import (
     create_3D_rotation_transformation,
     create_elastic_transformation,
     create_identity_transformation,
     create_rotation_transformation,
 )
+from augment.augment import apply_transformation, upscale_transformation
+
+import numpy as np
 from scipy import ndimage
 from scipy.spatial.transform import Rotation
 
-from gunpowder.array import Array, ArrayKey
-from gunpowder.array_spec import ArraySpec
-from gunpowder.batch import Batch
-from gunpowder.batch_request import BatchRequest
-from gunpowder.coordinate import Coordinate
-from gunpowder.roi import Roi
-
-from .batch_filter import BatchFilter
+import logging
+import math
+import random
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class DeformAugment(BatchFilter):
             Distance between control points for the elastic deformation, in
             physical units per dimension.
 
-        jitter_sigma (``Sequence`` of ``float``):
+        jitter_sigma (``tuple`` of ``float``):
 
             Standard deviation of control point jitter distribution, in physical units
             per dimension.
@@ -90,23 +90,12 @@ class DeformAugment(BatchFilter):
             apply). Should be a float value between 0 and 1. Lowering this value
             could be useful for computational efficiency and increasing
             augmentation space.
-
-        rotation_axes (``Sequence`` of ``int``, optional):
-
-            The spatial axes within which to rotate. The default is to rotate in all
-            spatial dimensions. It is assumed that the spatial dimensions are the last
-            dimensions of the array. I.e. if your array is indexed as ``(b,c,z,y,x)``
-            we will rotate in zyx. If you want to rotate in xz, you would set
-            ``rotation_axes=[1,2]`` since these are correspond to the axis indices after
-            removing the non-spatial "b" and "c" dimensions. Given axes ``(c,t,z,y,x)``
-            and a need to rotate in just x,y, you would set the rotation axes to
-            ``rotation_axes=[1,2]``.
     """
 
     def __init__(
         self,
         control_point_spacing: Coordinate,
-        jitter_sigma: Sequence[float],
+        jitter_sigma: Coordinate,
         scale_interval=(1.0, 1.0),
         rotate: bool = True,
         subsample=1,
@@ -116,10 +105,9 @@ class DeformAugment(BatchFilter):
         transform_key: Optional[ArrayKey] = None,
         graph_raster_voxel_size: Optional[Coordinate] = None,
         p: float = 1.0,
-        rotation_axes: Optional[Sequence[int]] = None,
     ):
         self.control_point_spacing = Coordinate(control_point_spacing)
-        self.jitter_sigma = np.array(jitter_sigma)
+        self.jitter_sigma = Coordinate(jitter_sigma)
         self.scale_min = scale_interval[0]
         self.scale_max = scale_interval[1]
         self.rotate = rotate
@@ -133,26 +121,15 @@ class DeformAugment(BatchFilter):
             if graph_raster_voxel_size is not None
             else control_point_spacing * 0 + 1
         )
-        self.rotation_axes = (
-            list(sorted(rotation_axes)) if rotation_axes is not None else None
-        )
         assert (
             self.control_point_spacing.dims
-            == len(self.jitter_sigma)
+            == self.jitter_sigma.dims
             == self.graph_raster_voxel_size.dims
         ), (
             f"control_point_spacing: {self.control_point_spacing}, "
             f"jitter_sigma: {self.jitter_sigma}, "
             f"and graph_raster_voxel_size must have the same number of dimensions"
         )
-        if rotation_axes is not None:
-            assert (
-                2 <= len(rotation_axes) <= spatial_dims <= 3
-            ), "Can only rotate in spatial dimensions and only in 2 or 3 dimensions"
-            assert all(a < spatial_dims for a in rotation_axes), (
-                "axis indexing must be relative to spatial dims. i.e. given b,c,z,y,x "
-                "rotation_axes must be a subset of [0,1,2] referencing z,y,x axes"
-            )
         self.p = p
 
     def setup(self):
@@ -329,11 +306,11 @@ class DeformAugment(BatchFilter):
             out_batch[array_key] = transformed_array
 
         for graph_key, graph in batch.graphs.items():
-            target_spatial_roi = Roi(
+            target_roi = Roi(
                 request[graph_key].roi.offset[-self.spatial_dims :],
                 request[graph_key].roi.shape[-self.spatial_dims :],
             )
-            transform_roi = target_spatial_roi.grow(
+            transform_roi = target_roi.grow(
                 self.graph_raster_voxel_size, self.graph_raster_voxel_size
             )
             source_roi = Roi(
@@ -387,8 +364,6 @@ class DeformAugment(BatchFilter):
 
                 logger.debug("final location: %s", node.location)
 
-            target_roi = request[graph_key].roi
-            logger.debug("Cropping graph to target roi %s", target_roi)
             out_batch[graph_key] = graph.crop(target_roi)
 
         if self.transform_key is not None:
@@ -472,16 +447,15 @@ class DeformAugment(BatchFilter):
                 for o, i in zip(output_spec.voxel_size, transformation.spec.voxel_size)
             ]
         )
-        coordinates = np.stack(
-            np.meshgrid(
-                range(dims),
-                *[
-                    np.linspace(o, (shape - 1) * step + o, shape)
-                    for o, shape, step in zip(offset, output_shape, step)
-                ],
-                indexing="ij",
-            )
+        coordinates = np.meshgrid(
+            range(dims),
+            *[
+                np.linspace(o, (shape - 1) * step + o, shape)
+                for o, shape, step in zip(offset, output_shape, step)
+            ],
+            indexing="ij",
         )
+        coordinates = np.stack(coordinates)
 
         sampled = ndimage.map_coordinates(
             transformation.data,
@@ -506,8 +480,8 @@ class DeformAugment(BatchFilter):
         if sum(self.jitter_sigma) > 0:
             el_transformation = create_elastic_transformation(
                 target_shape,
-                np.array(self.control_point_spacing) / np.array(target_spec.voxel_size),
-                np.array(self.jitter_sigma) / np.array(target_spec.voxel_size),
+                1,
+                np.array(self.jitter_sigma) / self.control_point_spacing,
                 subsample=self.subsample,
             )
 
@@ -517,44 +491,12 @@ class DeformAugment(BatchFilter):
             assert min(target_spec.voxel_size) == max(
                 target_spec.voxel_size
             ), "Only isotropic control point spacing supported when rotating"
-
-            if self.spatial_dims == 2 or (
-                self.rotation_axes is not None and len(self.rotation_axes) == 2
-            ):
-                if self.rotation_axes is not None:
-                    target_rot_shape = tuple(np.array(target_shape)[self.rotation_axes])
-                else:
-                    target_rot_shape = target_shape
+            if self.spatial_dims == 2:
                 rot_transformation = create_rotation_transformation(
-                    target_rot_shape,
-                    random.random() * math.pi * 2,
+                    target_shape,
+                    random.random() * math.pi,
                     subsample=self.subsample,
                 )
-                if self.rotation_axes:
-                    slices = (slice(None),) + tuple(
-                        slice(None) if i in self.rotation_axes else np.newaxis
-                        for i in range(self.spatial_dims)
-                    )
-                    rot_transformation = rot_transformation[slices]
-                    # figure out which axes were skipped. i.e. [0,-1,2] means axes 0,2 were rotated
-                    dzyx_sampling = [
-                        self.rotation_axes.index(j) if j in self.rotation_axes else -1
-                        for j in range(self.spatial_dims)
-                    ]
-                    # stack the rotation transformation to have the appropriate number of offset dims
-                    # inserting 0s for the skipped axis
-                    rot_transformation = np.stack(
-                        [
-                            (
-                                rot_transformation[x]
-                                if x >= 0
-                                else np.zeros_like(rot_transformation[0])
-                            )
-                            for x in dzyx_sampling
-                        ],
-                        axis=0,
-                    )
-
             else:
                 angle = Rotation.random()
                 rot_transformation = create_3D_rotation_transformation(
@@ -592,8 +534,7 @@ class DeformAugment(BatchFilter):
         )
 
     def __fast_point_projection(self, transformation, nodes, source_roi, target_roi):
-        valid_nodes = [node for node in nodes if source_roi.contains(node.location)]
-        if len(valid_nodes) < 1:
+        if len(nodes) < 1:
             return []
         # rasterize the points into an array
         ids, locs = zip(
@@ -606,7 +547,8 @@ class DeformAugment(BatchFilter):
                     )
                     // self.graph_raster_voxel_size,
                 )
-                for node in valid_nodes
+                for node in nodes
+                if source_roi.contains(node.location)
             ]
         )
         ids, locs = np.array(ids), tuple(zip(*locs))

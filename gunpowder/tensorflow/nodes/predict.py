@@ -1,15 +1,14 @@
 import ctypes
 import logging
 import multiprocessing as mp
-from functools import reduce
-from operator import mul
-
 import numpy as np
 
-from gunpowder.array import Array, ArrayKey
+from functools import reduce
+from gunpowder.array import ArrayKey, Array
 from gunpowder.ext import tensorflow as tf
 from gunpowder.nodes.generic_predict import GenericPredict
 from gunpowder.tensorflow.local_server import LocalServer
+from operator import mul
 
 logger = logging.getLogger(__name__)
 
@@ -277,7 +276,7 @@ class Predict(GenericPredict):
                     inputs[input_name] = batch.arrays[input_key].data
                 else:
                     logger.warn(
-                        "batch does not contain %s, input %s will not be set",
+                        "batch does not contain %s, input %s will not " "be set",
                         input_key,
                         input_name,
                     )
@@ -287,9 +286,8 @@ class Predict(GenericPredict):
                 inputs[input_name] = getattr(batch, input_key)
             else:
                 raise Exception(
-                    "Unknown network input key {}, can't be given to network".format(
-                        input_key
-                    )
+                    "Unknown network input key {}, can't be given to "
+                    "network".format(input_key)
                 )
 
         return inputs
